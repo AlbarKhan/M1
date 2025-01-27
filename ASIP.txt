@@ -1,0 +1,1052 @@
+1 )AIM: Write program to demonstrate the following aspects of signal 
+processing on suitable data  
+1. Upsampling and downsampling on Image/speech signal  
+2. Fast Fourier Transform to compute DFT 
+
+code :
+import numpy as np
+import cv2 
+import matplotlib.pyplot as plt 
+
+image = cv2.imread('11.jpg', cv2.IMREAD_GRAYSCALE) 
+ 
+downsampled_image = cv2.resize(image, None, fx=0.5, fy=0.5, 
+interpolation=cv2.INTER_AREA) 
+ 
+upsampled_image = cv2.resize(downsampled_image, (image.shape[1], 
+image.shape[0]), interpolation=cv2.INTER_LINEAR) 
+ 
+plt.figure(figsize=(12, 4)) 
+ 
+plt.subplot(1, 3, 1) 
+plt.title("Original Image") 
+plt.imshow(image, cmap='gray') 
+plt.axis('off') 
+ 
+plt.subplot(1, 3, 2) 
+plt.title("Downsampled Image") 
+plt.imshow(downsampled_image, cmap='gray') 
+plt.axis('off') 
+ 
+plt.subplot(1, 3, 3) 
+plt.title("Upsampled Image") 
+plt.imshow(upsampled_image, cmap='gray') 
+plt.axis('off') 
+ 
+plt.tight_layout() 
+plt.show() 
+
+
+ifft_image_shifted = np.fft.ifftshift(fft_image)
+reconstructed_image = np.fft.ifft2(ifft_image_shifted)
+reconstructed_image = np.abs(reconstructed_image)
+
+plt.figure()
+plt.title("Reconstructed Image from FFT")
+plt.imshow(reconstructed_image, cmap='gray')
+plt.axis('off')
+plt.show()
+
+//////////////////////// END //////////////////////////
+
+2) Practical No. 02 
+AIM: Write program to perform the following on signal  
+1. Create a triangle signal and plot a 3-period segment.  
+2. For a given signal, plot the segment and compute the correlation between them.
+
+CODE:
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+from scipy.signal import convolve
+from google.colab import files
+
+# Function to perform template matching on image data
+def template_matching():
+    try:
+        print("Upload the main image:")
+        uploaded_image = files.upload()
+        image_path = list(uploaded_image.keys())[0]
+
+        print("Upload the template image:")
+        uploaded_template = files.upload()
+        template_path = list(uploaded_template.keys())[0]
+
+        # Load the image and the template
+        image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+
+        # Check if the files were loaded correctly
+        if image is None or template is None:
+            raise FileNotFoundError("Image or template file not found.")
+
+        # Perform template matching
+        result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+        # Extract the top-left corner of the matching area
+        top_left = max_loc
+        h, w = template.shape
+
+        # Draw a rectangle around the matched region
+        matched_image = image.copy()
+        cv2.rectangle(matched_image, top_left, (top_left[0] + w, top_left[1] + h), 255, 2)
+
+        # Plot the results
+        plt.figure(figsize=(12, 6))
+        
+        # Original image
+        plt.subplot(1, 3, 1)
+        plt.imshow(image, cmap='gray')
+        plt.title("Original Image")
+        plt.axis('off')
+
+        # Template image
+        plt.subplot(1, 3, 2)
+        plt.imshow(template, cmap='gray')
+        plt.title("Template Image")
+        plt.axis('off')
+
+        # Matched image with rectangle
+        plt.subplot(1, 3, 3)
+        plt.imshow(matched_image, cmap='gray')
+        plt.title("Matched Image")
+        plt.axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
+        # Return results for further processing if needed
+        return result, top_left, (w, h)
+
+    except Exception as e:
+        print(f"An error occurred during template matching: {e}")
+        return None
+
+
+# Function to perform convolution on sound data
+def sound_convolution():
+    try:
+        print("Upload the WAV file:")
+        uploaded_wav = files.upload()
+        input_wav = list(uploaded_wav.keys())[0]
+
+        # Read the sound file
+        sample_rate, sound_data = wavfile.read(input_wav)
+
+        # Handle multi-channel audio
+        if sound_data.ndim > 1:  # Stereo or multi-channel
+            sound_data = sound_data[:, 0]  # Use the first channel
+
+        # Check for file truncation
+        if len(sound_data) == 0:
+            raise ValueError("Sound file is empty or corrupted.")
+
+        # Normalize sound data
+        sound_data = sound_data / np.max(np.abs(sound_data))
+
+        # Define a simple kernel for smoothing
+        kernel = np.ones(5) / 5
+
+        # Perform convolution
+        convolved_data = convolve(sound_data, kernel, mode='same')
+
+        # Plot original and convolved sound data
+        plt.figure(figsize=(12, 6))
+        
+        # Plot original sound
+        plt.subplot(2, 1, 1)
+        plt.plot(sound_data, label="Original Sound")
+        plt.title("Original Sound Signal")
+        plt.grid()
+        plt.legend()
+
+        # Plot convolved sound
+        plt.subplot(2, 1, 2)
+        plt.plot(convolved_data, label="Convolved Sound", color='orange')
+        plt.title("Convolved Sound Signal")
+        plt.grid()
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
+        # Return the convolved data
+        return convolved_data
+
+    except Exception as e:
+        print(f"An error occurred during sound convolution: {e}")
+        return None
+
+
+# Example Usage
+# 1. Template Matching
+print("Performing Template Matching...")
+template_matching()
+
+# 2. Sound Convolution
+print("\nPerforming Sound Convolution...")
+sound_convolution()
+
+//////////////////////// END //////////////////////////
+
+3) Practical No. 03 
+AIM: Write program to demonstrate the following aspects of signal on 
+sound/image data  
+1. Convolution operation  
+2. Template Matching
+
+CODE :
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+from scipy.signal import convolve
+from google.colab import files
+
+# Function to perform template matching on image data
+def template_matching():
+    try:
+        print("Upload the main image:")
+        uploaded_image = files.upload()
+        image_path = list(uploaded_image.keys())[0]
+
+        print("Upload the template image:")
+        uploaded_template = files.upload()
+        template_path = list(uploaded_template.keys())[0]
+
+        # Load the image and the template
+        image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+
+        # Check if the files were loaded correctly
+        if image is None or template is None:
+            raise FileNotFoundError("Image or template file not found.")
+
+        # Perform template matching
+        result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+        # Extract the top-left corner of the matching area
+        top_left = max_loc
+        h, w = template.shape
+
+        # Draw a rectangle around the matched region
+        matched_image = image.copy()
+        cv2.rectangle(matched_image, top_left, (top_left[0] + w, top_left[1] + h), 255, 2)
+
+        # Plot the results
+        plt.figure(figsize=(12, 6))
+        
+        # Original image
+        plt.subplot(1, 3, 1)
+        plt.imshow(image, cmap='gray')
+        plt.title("Original Image")
+        plt.axis('off')
+
+        # Template image
+        plt.subplot(1, 3, 2)
+        plt.imshow(template, cmap='gray')
+        plt.title("Template Image")
+        plt.axis('off')
+
+        # Matched image with rectangle
+        plt.subplot(1, 3, 3)
+        plt.imshow(matched_image, cmap='gray')
+        plt.title("Matched Image")
+        plt.axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
+        # Return results for further processing if needed
+        return result, top_left, (w, h)
+
+    except Exception as e:
+        print(f"An error occurred during template matching: {e}")
+        return None
+
+
+# Function to perform convolution on sound data
+def sound_convolution():
+    try:
+        print("Upload the WAV file:")
+        uploaded_wav = files.upload()
+        input_wav = list(uploaded_wav.keys())[0]
+
+        # Read the sound file
+        sample_rate, sound_data = wavfile.read(input_wav)
+
+        # Handle multi-channel audio
+        if sound_data.ndim > 1:  # Stereo or multi-channel
+            sound_data = sound_data[:, 0]  # Use the first channel
+
+        # Check for file truncation
+        if len(sound_data) == 0:
+            raise ValueError("Sound file is empty or corrupted.")
+
+        # Normalize sound data
+        sound_data = sound_data / np.max(np.abs(sound_data))
+
+        # Define a simple kernel for smoothing
+        kernel = np.ones(5) / 5
+
+        # Perform convolution
+        convolved_data = convolve(sound_data, kernel, mode='same')
+
+        # Plot original and convolved sound data
+        plt.figure(figsize=(12, 6))
+        
+        # Plot original sound
+        plt.subplot(2, 1, 1)
+        plt.plot(sound_data, label="Original Sound")
+        plt.title("Original Sound Signal")
+        plt.grid()
+        plt.legend()
+
+        # Plot convolved sound
+        plt.subplot(2, 1, 2)
+        plt.plot(convolved_data, label="Convolved Sound", color='orange')
+        plt.title("Convolved Sound Signal")
+        plt.grid()
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
+        # Return the convolved data
+        return convolved_data
+
+    except Exception as e:
+        print(f"An error occurred during sound convolution: {e}")
+        return None
+
+
+# Example Usage
+# 1. Template Matching
+print("Performing Template Matching...")
+template_matching()
+
+# 2. Sound Convolution
+print("\nPerforming Sound Convolution...")
+sound_convolution()
+
+//////////////////////// END //////////////////////////
+
+4) Practical No. 04 
+AIM: Write program to implement point/pixel intensity transformations 
+1. Log and Power-law transformations  
+2. Contrast adjustments  
+3. Histogram equalization  
+4. Thresholding, and halftoning operations 
+
+CODE:
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# Function to load an example grayscale image
+def load_image():
+    print("Upload an image file:")
+    uploaded = files.upload()
+    image_path = list(uploaded.keys())[0]
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if image is None:
+        raise ValueError(f"Image not found at '{image_path}'. Please provide a valid image.")
+    return image
+
+# 1. Log Transformation
+def log_transform(image):
+    c = 255 / np.log(1 + np.max(image))  # Scale constant
+    log_image = c * np.log(1 + image)
+    return np.uint8(log_image)
+
+# 2. Power-Law (Gamma) Transformation
+def power_law_transform(image, gamma=1.0):
+    c = 255 / (np.max(image) ** gamma)
+    power_image = c * (image ** gamma)
+    return np.uint8(power_image)
+
+# 3. Contrast Adjustment
+def contrast_adjustment(image, alpha=1.5, beta=0):
+    contrast_image = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+    return contrast_image
+
+# 4. Histogram Equalization
+def histogram_equalization(image):
+    equalized_image = cv2.equalizeHist(image)
+    return equalized_image
+
+# 5. Thresholding
+def thresholding(image, threshold=128):
+    _, binary_image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+    return binary_image
+
+# 6. Halftoning
+def halftoning(image):
+    halftone_image = np.where(image > 127, 255, 0).astype(np.uint8)
+    return halftone_image
+
+# Display images with their titles
+def display_images(images, titles):
+    plt.figure(figsize=(15, 10))
+    for i, (image, title) in enumerate(zip(images, titles)):
+        rows, cols = 2, 4  # Adjust grid size to fit all images
+        plt.subplot(rows, cols, i + 1)
+        plt.imshow(image, cmap='gray')
+        plt.title(title)
+        plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+# Main Functionality
+if __name__ == "__main__":
+    # Load the image
+    image = load_image()
+
+    # Apply transformations
+    log_image = log_transform(image)
+    power_image = power_law_transform(image, gamma=0.5)
+    contrast_image = contrast_adjustment(image, alpha=2.0, beta=50)
+    equalized_image = histogram_equalization(image)
+    binary_image = thresholding(image, threshold=128)
+    halftone_image = halftoning(image)
+
+    # Display results
+    images = [image, log_image, power_image, contrast_image, equalized_image, binary_image, halftone_image]
+    titles = [
+        "Original", "Log Transform", "Power-law Transform",
+        "Contrast Adjustment", "Histogram Equalization",
+        "Thresholding", "Halftoning"
+    ]
+    display_images(images, titles)
+
+
+//////////////////////// END //////////////////////////
+
+5) Practical No. 05 
+AIM: Write a program to apply various enhancements on images using image 
+derivatives by implementing Gradient and Laplacian operations 
+
+CODE : 
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def apply_image_enhancements(image_path):
+    # Load the image in grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Error: Unable to load image!")
+        return
+
+    # Compute the Gradient using Sobel operators
+    sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)  # Gradient in x-direction
+    sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)  # Gradient in y-direction
+    gradient_magnitude = cv2.magnitude(sobel_x, sobel_y)  # Magnitude of the gradient
+
+    # Compute the Laplacian
+    laplacian = cv2.Laplacian(img, cv2.CV_64F, ksize=3)
+
+    # Normalize the results for display
+    sobel_x = cv2.convertScaleAbs(sobel_x)
+    sobel_y = cv2.convertScaleAbs(sobel_y)
+    gradient_magnitude = cv2.convertScaleAbs(gradient_magnitude)
+    laplacian = cv2.convertScaleAbs(laplacian)
+
+    # Plot the original and enhanced images
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 3, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(img, cmap='gray')
+    
+    plt.subplot(2, 3, 2)
+    plt.title("Gradient (Sobel X)")
+    plt.axis('off')
+    plt.imshow(sobel_x, cmap='gray')
+    
+    plt.subplot(2, 3, 3)
+    plt.title("Gradient (Sobel Y)")
+    plt.axis('off')
+    plt.imshow(sobel_y, cmap='gray')
+    
+    plt.subplot(2, 3, 4)
+    plt.title("Gradient Magnitude")
+    plt.axis('off')
+    plt.imshow(gradient_magnitude, cmap='gray')
+    
+    plt.subplot(2, 3, 5)
+    plt.title("Laplacian")
+    plt.axis('off')
+    plt.imshow(laplacian, cmap='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload for Google Colab
+print("Please upload an image file.")
+uploaded = files.upload()
+
+# Assuming a single file is uploaded, get its filename
+if uploaded:
+    image_path = list(uploaded.keys())[0]  # Get the uploaded file name
+    apply_image_enhancements(image_path)
+else:
+    print("No file uploaded.")
+
+
+//////////////////////// END //////////////////////////
+
+6)  Practical No. 06 
+AIM: Write a program to implement linear and nonlinear noise smoothing on 
+suitable image or sound signal. 
+
+CODE :
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def apply_noise_smoothing(image_path):
+    # Load the image in grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Error: Unable to load image!")
+        return
+
+    # Add artificial noise to the image
+    noisy_img = img + np.random.normal(0, 25, img.shape).astype(np.uint8)
+
+    # Linear Smoothing: Gaussian Blur
+    linear_smooth = cv2.GaussianBlur(noisy_img, (5, 5), 1)
+
+    # Nonlinear Smoothing: Median Blur
+    nonlinear_smooth = cv2.medianBlur(noisy_img, 5)
+
+    # Plot the results
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 2, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(img, cmap='gray')
+    
+    plt.subplot(2, 2, 2)
+    plt.title("Noisy Image")
+    plt.axis('off')
+    plt.imshow(noisy_img, cmap='gray')
+    
+    plt.subplot(2, 2, 3)
+    plt.title("Linear Smoothing (Gaussian)")
+    plt.axis('off')
+    plt.imshow(linear_smooth, cmap='gray')
+    
+    plt.subplot(2, 2, 4)
+    plt.title("Nonlinear Smoothing (Median)")
+    plt.axis('off')
+    plt.imshow(nonlinear_smooth, cmap='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload for Google Colab
+print("Please upload an image file.")
+uploaded = files.upload()
+
+# Assuming a single file is uploaded, get its filename
+if uploaded:
+    image_path = list(uploaded.keys())[0]  # Get the uploaded file name
+    apply_noise_smoothing(image_path)
+else:
+    print("No file uploaded.")
+
+
+# SECOND CODE PRACTICAL SIX
+
+import numpy as np
+import scipy.signal as signal
+import matplotlib.pyplot as plt
+
+def apply_noise_smoothing_to_signal():
+    # Generate a synthetic noisy signal
+    fs = 1000  # Sampling frequency
+    t = np.linspace(0, 1, fs, endpoint=False)  # Time axis
+    clean_signal = np.sin(2 * np.pi * 5 * t)  # Clean sine wave signal
+    noise = np.random.normal(0, 0.5, clean_signal.shape)  # Gaussian noise
+    noisy_signal = clean_signal + noise
+
+    # Linear Smoothing: Low-pass filter
+    b, a = signal.butter(4, 0.1, btype='low')  # 4th order Butterworth low-pass filter
+    linear_smooth = signal.filtfilt(b, a, noisy_signal)
+
+    # Nonlinear Smoothing: Median filter
+    nonlinear_smooth = signal.medfilt(noisy_signal, kernel_size=5)
+
+    # Plot the results
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(4, 1, 1)
+    plt.title("Clean Signal")
+    plt.plot(t, clean_signal, label="Clean Signal")
+    plt.grid()
+    plt.legend()
+    
+    plt.subplot(4, 1, 2)
+    plt.title("Noisy Signal")
+    plt.plot(t, noisy_signal, label="Noisy Signal", color="orange")
+    plt.grid()
+    plt.legend()
+    
+    plt.subplot(4, 1, 3)
+    plt.title("Linear Smoothing (Low-pass Filter)")
+    plt.plot(t, linear_smooth, label="Linear Smooth", color="green")
+    plt.grid()
+    plt.legend()
+    
+    plt.subplot(4, 1, 4)
+    plt.title("Nonlinear Smoothing (Median Filter)")
+    plt.plot(t, nonlinear_smooth, label="Nonlinear Smooth", color="red")
+    plt.grid()
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+# Call the function
+apply_noise_smoothing_to_signal()
+
+//////////////////////// END //////////////////////////
+
+7)  Practical No. 07 
+AIM: Write a program to apply various image enhancement using image 
+derivatives by implementing smoothing, sharpening, and unsharp masking filters 
+for generating suitable images for specific application requirements
+
+CODE : 
+
+
+#PRACTICAL 7
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def apply_image_enhancements(image_path):
+    # Load the image in grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Error: Unable to load image!")
+        return
+
+    # 1. Smoothing using Gaussian Blur
+    smoothed = cv2.GaussianBlur(img, (5, 5), 1)
+
+    # 2. Sharpening using Laplacian
+    laplacian = cv2.Laplacian(img, cv2.CV_64F, ksize=3)
+    sharpened = cv2.convertScaleAbs(img - laplacian)
+
+    # 3. Unsharp Masking
+    gaussian_blur = cv2.GaussianBlur(img, (5, 5), 1)
+    unsharp_mask = cv2.addWeighted(img, 1.5, gaussian_blur, -0.5, 0)
+
+    # Plot the results
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 2, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(img, cmap='gray')
+    
+    plt.subplot(2, 2, 2)
+    plt.title("Smoothing (Gaussian Blur)")
+    plt.axis('off')
+    plt.imshow(smoothed, cmap='gray')
+    
+    plt.subplot(2, 2, 3)
+    plt.title("Sharpening (Laplacian)")
+    plt.axis('off')
+    plt.imshow(sharpened, cmap='gray')
+    
+    plt.subplot(2, 2, 4)
+    plt.title("Unsharp Masking")
+    plt.axis('off')
+    plt.imshow(unsharp_mask, cmap='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload
+print("Please upload an image file:")
+uploaded = files.upload()
+
+# Apply image enhancements
+if uploaded:
+    # Get the filename of the uploaded file
+    image_path = next(iter(uploaded))
+    apply_image_enhancements(image_path)
+
+//////////////////////// END //////////////////////////
+
+8)  Practical No. 08 
+AIM: Write a program to Apply edge detection techniques such as Sobel and 
+Canny to extract meaningful information from the given image samples 
+
+CODE : 
+
+#Practical 8
+import cv2
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def apply_edge_detection(image_path):
+    # Load the image in grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Error: Unable to load image!")
+        return
+
+    # Apply Sobel edge detection
+    sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)  # Gradient in x-direction
+    sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)  # Gradient in y-direction
+    sobel_combined = cv2.magnitude(sobel_x, sobel_y)  # Magnitude of gradient
+
+    # Convert Sobel results to 8-bit for visualization
+    sobel_x = cv2.convertScaleAbs(sobel_x)
+    sobel_y = cv2.convertScaleAbs(sobel_y)
+    sobel_combined = cv2.convertScaleAbs(sobel_combined)
+
+    # Apply Canny edge detection
+    canny_edges = cv2.Canny(img, threshold1=100, threshold2=200)
+
+    # Plot the results
+    plt.figure(figsize=(12, 8))
+    
+    plt.subplot(2, 2, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(img, cmap='gray')
+    
+    plt.subplot(2, 2, 2)
+    plt.title("Sobel - Gradient X")
+    plt.axis('off')
+    plt.imshow(sobel_x, cmap='gray')
+    
+    plt.subplot(2, 2, 3)
+    plt.title("Sobel - Gradient Y")
+    plt.axis('off')
+    plt.imshow(sobel_y, cmap='gray')
+    
+    plt.subplot(2, 2, 4)
+    plt.title("Sobel - Combined Magnitude")
+    plt.axis('off')
+    plt.imshow(sobel_combined, cmap='gray')
+    
+    plt.figure()
+    plt.title("Canny Edge Detection")
+    plt.axis('off')
+    plt.imshow(canny_edges, cmap='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload
+print("Please upload an image file:")
+uploaded = files.upload()
+
+# Apply edge detection
+if uploaded:
+    # Get the filename of the uploaded file
+    image_path = next(iter(uploaded))
+    apply_edge_detection(image_path)
+
+//////////////////////// END //////////////////////////
+
+9) Practical No. 09 
+AIM: Write the program to implement various morphological image processing 
+techniques. 
+
+CODE :
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab import files
+
+def morphological_processing(image_path):
+    # Load the image in grayscale
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        print("Error: Unable to load image!")
+        return
+
+    # Define a kernel
+    kernel = np.ones((5, 5), np.uint8)
+
+    # Morphological operations
+    erosion = cv2.erode(img, kernel, iterations=1)
+    dilation = cv2.dilate(img, kernel, iterations=1)
+    opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+    closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+    gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
+    tophat = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, kernel)
+    blackhat = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, kernel)
+
+    # Plot the results
+    plt.figure(figsize=(15, 10))
+    
+    plt.subplot(3, 3, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(img, cmap='gray')
+    
+    plt.subplot(3, 3, 2)
+    plt.title("Erosion")
+    plt.axis('off')
+    plt.imshow(erosion, cmap='gray')
+    
+    plt.subplot(3, 3, 3)
+    plt.title("Dilation")
+    plt.axis('off')
+    plt.imshow(dilation, cmap='gray')
+    
+    plt.subplot(3, 3, 4)
+    plt.title("Opening")
+    plt.axis('off')
+    plt.imshow(opening, cmap='gray')
+    
+    plt.subplot(3, 3, 5)
+    plt.title("Closing")
+    plt.axis('off')
+    plt.imshow(closing, cmap='gray')
+    
+    plt.subplot(3, 3, 6)
+    plt.title("Gradient")
+    plt.axis('off')
+    plt.imshow(gradient, cmap='gray')
+    
+    plt.subplot(3, 3, 7)
+    plt.title("Top Hat")
+    plt.axis('off')
+    plt.imshow(tophat, cmap='gray')
+    
+    plt.subplot(3, 3, 8)
+    plt.title("Black Hat")
+    plt.axis('off')
+    plt.imshow(blackhat, cmap='gray')
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload
+print("Please upload an image file:")
+uploaded = files.upload()
+
+# Apply morphological processing
+if uploaded:
+    # Get the filename of the uploaded file
+    image_path = next(iter(uploaded))
+    morphological_processing(image_path)
+
+//////////////////////// END //////////////////////////
+
+10) Practical No. 10 
+AIM: Write the program to extract image features by implementing methods like 
+corner and blob detectors, HoG and Haar features 
+
+CODE :
+
+#PRACTICAL 10
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage.feature import hog
+from google.colab import files
+
+def feature_extraction(image_path):
+    # Load the image
+    img = cv2.imread(image_path)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # 1. Corner Detection (Harris)
+    harris_corners = cv2.cornerHarris(gray, blockSize=2, ksize=3, k=0.04)
+    harris_corners = cv2.dilate(harris_corners, None)  # Enhance corner points
+    img_harris = img.copy()
+    img_harris[harris_corners > 0.01 * harris_corners.max()] = [0, 0, 255]
+
+    # 2. Corner Detection (Shi-Tomasi)
+    corners = cv2.goodFeaturesToTrack(gray, maxCorners=100, qualityLevel=0.01, minDistance=10)
+    corners = np.intp(corners)  # Replace np.int0 with np.intp
+    img_shi_tomasi = img.copy()
+    for corner in corners:
+        x, y = corner.ravel()
+        cv2.circle(img_shi_tomasi, (x, y), 3, (0, 255, 0), -1)
+
+    # 3. Blob Detection
+    blob_params = cv2.SimpleBlobDetector_Params()
+    blob_detector = cv2.SimpleBlobDetector_create(blob_params)
+    keypoints = blob_detector.detect(gray)
+    img_blob = cv2.drawKeypoints(img, keypoints, None, (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    # 4. HoG Features
+    hog_features, hog_image = hog(
+        gray, pixels_per_cell=(8, 8), cells_per_block=(2, 2), visualize=True, block_norm='L2-Hys'
+    )
+
+    # 5. Haar Features (Face Detection)
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    img_haar = img.copy()
+    for (x, y, w, h) in faces:
+        cv2.rectangle(img_haar, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    # Plot the results
+    plt.figure(figsize=(15, 10))
+    
+    plt.subplot(2, 3, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    
+    plt.subplot(2, 3, 2)
+    plt.title("Harris Corners")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_harris, cv2.COLOR_BGR2RGB))
+    
+    plt.subplot(2, 3, 3)
+    plt.title("Shi-Tomasi Corners")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_shi_tomasi, cv2.COLOR_BGR2RGB))
+    
+    plt.subplot(2, 3, 4)
+    plt.title("Blob Detection")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_blob, cv2.COLOR_BGR2RGB))
+    
+    plt.subplot(2, 3, 5)
+    plt.title("HoG Features")
+    plt.axis('off')
+    plt.imshow(hog_image, cmap='gray')
+    
+    plt.subplot(2, 3, 6)
+    plt.title("Haar Features (Face Detection)")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_haar, cv2.COLOR_BGR2RGB))
+    
+    plt.tight_layout()
+    plt.show()
+
+# File upload for Google Colab
+print("Please upload an image file:")
+uploaded = files.upload()
+
+# Apply feature extraction
+if uploaded:
+    # Get the filename of the uploaded file
+    image_path = next(iter(uploaded))
+    feature_extraction(image_path)
+
+//////////////////////// END //////////////////////////
+
+11) Practical No. 11 
+AIM: Write the program to apply segmentation for detecting lines, circles, and 
+other shapes/ objects. Also, implement edge-based and region-based 
+segmentation. 
+
+CODE: 
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+def shape_segmentation(image_path):
+    # Load the image in color and convert to grayscale
+    img = cv2.imread(image_path)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 1)
+
+    # 1. Edge-based Segmentation: Using Canny Edge Detection
+    edges = cv2.Canny(blurred, 50, 150)
+
+    # 2. Line Detection using Hough Transform
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 100)
+    img_lines = img.copy()
+    if lines is not None:
+        for rho, theta in lines[:, 0]:
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
+            cv2.line(img_lines, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+    # 3. Circle Detection using Hough Transform
+    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=30, param1=50, param2=30, minRadius=10, maxRadius=100)
+    img_circles = img.copy()
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for (x, y, r) in circles[0, :]:
+            cv2.circle(img_circles, (x, y), r, (0, 255, 255), 3)
+            cv2.circle(img_circles, (x, y), 2, (255, 0, 0), 3)
+
+    # 4. Region-based Segmentation: Watershed Algorithm
+    _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    kernel = np.ones((3, 3), np.uint8)
+    sure_bg = cv2.dilate(binary, kernel, iterations=2)
+    dist_transform = cv2.distanceTransform(binary, cv2.DIST_L2, 5)
+    _, sure_fg = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
+    sure_fg = np.uint8(sure_fg)
+    unknown = cv2.subtract(sure_bg, sure_fg)
+    markers = cv2.connectedComponents(sure_fg)[1]
+    markers = markers + 1
+    markers[unknown == 255] = 0
+    watershed_img = img.copy()
+    markers = cv2.watershed(watershed_img, markers)
+    watershed_img[markers == -1] = [255, 0, 0]
+
+    # Plot the results
+    plt.figure(figsize=(15, 10))
+
+    plt.subplot(2, 3, 1)
+    plt.title("Original Image")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
+    plt.subplot(2, 3, 2)
+    plt.title("Edge Detection (Canny)")
+    plt.axis('off')
+    plt.imshow(edges, cmap='gray')
+
+    plt.subplot(2, 3, 3)
+    plt.title("Line Detection (Hough Transform)")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_lines, cv2.COLOR_BGR2RGB))
+
+    plt.subplot(2, 3, 4)
+    plt.title("Circle Detection (Hough Transform)")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(img_circles, cv2.COLOR_BGR2RGB))
+
+    plt.subplot(2, 3, 5)
+    plt.title("Region-based Segmentation (Watershed)")
+    plt.axis('off')
+    plt.imshow(cv2.cvtColor(watershed_img, cv2.COLOR_BGR2RGB))
+
+    plt.tight_layout()
+    plt.show()
+
+# Path to the image
+image_path = '10-11.jpg'  # Replace with the path to your image
+shape_segmentation(image_path)
+
